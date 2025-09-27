@@ -45,14 +45,14 @@ jobs:
           wget -O worker-vless.js https://raw.githubusercontent.com/zizifn/edgetunnel/main/src/worker-vless.js
           wget -O vless-nat64.patch https://raw.githubusercontent.com/cylind/awesome_cloudflare_workers/main/vless-nat64.patch
 
-      # 步骤 5: 应用补丁，然后修改环境变量名
+      # 步骤 5: 应用补丁，然后修改环境变量名为大写
       - name: Apply patch and then modify env variable names
         run: |
           # 首先，应用补丁到 worker-vless.js
           patch worker-vless.js < vless-nat64.patch
-          # 接着，在打好补丁的文件上修改环境变量的引用
-          sed -i 's/env.UUID/env.id/g' worker-vless.js
-          sed -i 's/env.NAT64_PREFIX/env.n64/g' worker-vless.js
+          # 接着，在打好补丁的文件上修改环境变量的引用为大写
+          sed -i 's/env.UUID/env.ID/g' worker-vless.js
+          sed -i 's/env.NAT64_PREFIX/env.N64/g' worker-vless.js
           # 最后，重命名文件以供后续步骤使用
           mv worker-vless.js origin.js
 
@@ -104,21 +104,21 @@ jobs:
       - name: "🚀 Deploy to Cloudflare Workers"
         uses: cloudflare/wrangler-action@v3
         env:
-          # 将 secrets.N64 的值赋给一个名为 n64 的环境变量
-          n64: ${{ secrets.N64 }}
+          # 将 secrets.N64 的值赋给一个名为 N64 的大写环境变量
+          N64: ${{ secrets.N64 }}
         with:
           apiToken: ${{ secrets.CF_API_TOKEN }}
           accountId: ${{ secrets.CF_ACCOUNT_ID }}
           wranglerVersion: '3.57.0'
           # 在部署前运行的命令
           preCommands: |
-            echo "🔑 Setting secret: id..."
-            # 删除旧的 secret (如果存在)，并从 GitHub Secrets 设置新的
-            npx wrangler secret delete id || true
-            echo "${{ secrets.ID }}" | npx wrangler secret put id
+            echo "🔑 Setting secret: ID..."
+            # 删除旧的 secret (如果存在)，并从 GitHub Secrets 设置新的大写 secret
+            npx wrangler secret delete ID || true
+            echo "${{ secrets.ID }}" | npx wrangler secret put ID
           # 执行部署命令
           command: deploy
-          # 将名为 n64 的环境变量绑定到 Worker
+          # 将名为 N64 的大写环境变量绑定到 Worker
           vars: |
-            n64
+            N64
 
